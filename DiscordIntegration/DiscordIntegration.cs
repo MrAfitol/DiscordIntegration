@@ -72,43 +72,32 @@ namespace DiscordIntegration
         public void OnEnabled()
         {
             Instance = this;
-            Log.Info("Che 1");
             try
             {
-                Log.Info("Che 2");
                 harmony = new Harmony($"com.joker.DI-{DateTime.Now.Ticks}");
                 harmony.PatchAll();
-                Log.Info("Che 3");
+
             }
             catch (Exception e)
             {
                 Log.Error($"{e}");
             }
-
-            Log.Info("Che 4");
+            
             Language = new Language();
             Network = new Network(Config.Bot.IPAddress, Config.Bot.Port, TimeSpan.FromSeconds(Config.Bot.ReconnectionInterval));
-
-            Log.Info("Che 5");
+            
             NetworkCancellationTokenSource = new CancellationTokenSource();
-
-            Log.Info("Che 6");
+            
             Language.Save();
             Language.Load();
-            Log.Info("Che 7");
             RegisterEvents();
-            Log.Info("Che 8");
             Bot.UpdateActivityCancellationTokenSource = new CancellationTokenSource();
             Bot.UpdateChannelsTopicCancellationTokenSource = new CancellationTokenSource();
-            Log.Info("Che 9");
-
-            Log.Info("Che 10");
+            
             _ = Network.Start(NetworkCancellationTokenSource);
-
-            Log.Info("Che 11");
+            
             _ = Bot.UpdateActivity(Bot.UpdateActivityCancellationTokenSource.Token);
             _ = Bot.UpdateChannelsTopic(Bot.UpdateChannelsTopicCancellationTokenSource.Token);
-            Log.Info("Che 12");
         }
 
         /// <summary>
