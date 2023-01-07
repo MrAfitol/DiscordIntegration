@@ -48,7 +48,7 @@ public static class Program
 
     private static async Task KeepAlive()
     {
-        Log.Debug(0, nameof(KeepAlive), "Keeping alive bots.");
+        Log.Debug(0, nameof(KeepAlive), "Keeping alive bots.", Config.Default.Debug);
         await Task.Delay(-1);
     }
 }

@@ -26,7 +26,7 @@ public class SendCommand : InteractionModuleBase<SocketInteractionContext>
         
         try
         {
-            Log.Debug(bot.ServerNumber, nameof(Send), $"Sending {command}");
+            Log.Debug(bot.ServerNumber, nameof(Send), $"Sending {command}", Config.Default.Debug);
             await bot.Server.SendAsync(new RemoteCommand(ActionType.ExecuteCommand, Context.Channel.Id, command, Context.User.Id, Context.User.Username));
             await RespondAsync("Command sent.", ephemeral: true);
         }

@@ -52,24 +52,24 @@ public class Bot
             return;
         }
         
-        Log.Debug(ServerNumber, nameof(Init), "Setting up commands...");
+        Log.Debug(ServerNumber, nameof(Init), "Setting up commands...", Config.Default.Debug);
         InteractionService = new(Client, new InteractionServiceConfig()
         {
             AutoServiceScopes = false,
         });
         CommandHandler = new(InteractionService, Client, this);
 
-        Log.Debug(ServerNumber, nameof(Init), "Setting up logging..");
+        Log.Debug(ServerNumber, nameof(Init), "Setting up logging..", Config.Default.Debug);
         InteractionService.Log += SendLog;
         Client.Log += SendLog;
 
-        Log.Debug(ServerNumber, nameof(Init), "Registering commands..");
+        Log.Debug(ServerNumber, nameof(Init), "Registering commands..", Config.Default.Debug);
         await CommandHandler.InstallCommandsAsync();
         Client.Ready += async () =>
         {
             int slashCommands = (await InteractionService.RegisterCommandsToGuildAsync(Guild.Id)).Count;
 
-            Log.Debug(ServerNumber, nameof(Init), $"{slashCommands} slash commands registered.");
+            Log.Debug(ServerNumber, nameof(Init), $"{slashCommands} slash commands registered.", Config.Default.Debug);
         };
 
         Log.Debug(ServerNumber, nameof(Init), "Logging in..");
@@ -91,9 +91,9 @@ public class Bot
     {
         try
         {
-            Log.Debug(ServerNumber, nameof(OnReceived), $"Received data {ev.Data}");
+            Log.Debug(ServerNumber, nameof(OnReceived), $"Received data {ev.Data}", Config.Default.Debug);
             RemoteCommand command = JsonConvert.DeserializeObject<RemoteCommand>(ev.Data)!;
-            Log.Debug(ServerNumber, nameof(OnReceived), $"Received command {command.Action}.");
+            Log.Debug(ServerNumber, nameof(OnReceived), $"Received command {command.Action}.", Config.Default.Debug);
 
             switch (command.Action)
             {
@@ -103,7 +103,7 @@ public class Bot
                     {
                         foreach (LogChannel channel in Program.Config.Channels[ServerNumber].Logs[type])
                         {
-                            Log.Debug(ServerNumber, nameof(OnReceived), "Adding message to queue..");
+                            Log.Debug(ServerNumber, nameof(OnReceived), "Adding message to queue..", Config.Default.Debug);
                             if (!Messages.ContainsKey(channel))
                                 Messages.Add(channel, string.Empty);
                             Messages[channel] += $"[{DateTime.Now}] {command.Parameters[1]}\n";
@@ -126,7 +126,7 @@ public class Bot
                     string commandMessage = string.Empty;
                     foreach (object obj in command.Parameters)
                         commandMessage += (string) obj + " ";
-                    Log.Debug(ServerNumber, nameof(OnReceived), $"Updating activity status.. {commandMessage}");
+                    Log.Debug(ServerNumber, nameof(OnReceived), $"Updating activity status.. {commandMessage}", Config.Default.Debug);
                     try
                     {
                         string[] split = ((string)command.Parameters[0]).Split('/');
@@ -152,8 +152,8 @@ public class Bot
                                 break;
                         }
                         
-                        Log.Debug(ServerNumber, nameof(OnReceived), $"Status message count: {count}");
-                        Log.Debug(ServerNumber, nameof(OnReceived), $"Status message total: {total}");
+                        Log.Debug(ServerNumber, nameof(OnReceived), $"Status message count: {count}", Config.Default.Debug);
+                        Log.Debug(ServerNumber, nameof(OnReceived), $"Status message total: {total}", Config.Default.Debug);
                         if (count != lastCount || total != lastTotal)
                         {
                             lastCount = count;
@@ -165,7 +165,7 @@ public class Bot
                     catch (Exception e)
                     {
                         Log.Error(ServerNumber, nameof(OnReceived), "Error updating bot status. Enable debug for more information.");
-                        Log.Debug(ServerNumber, nameof(OnReceived), e);
+                        Log.Debug(ServerNumber, nameof(OnReceived), e, Config.Default.Debug);
                     }
 
                     break;
@@ -192,7 +192,7 @@ public class Bot
     {
         for (;;)
         {
-            Log.Debug(ServerNumber, nameof(DequeueMessages), "Dequeue loop");
+            Log.Debug(ServerNumber, nameof(DequeueMessages), "Dequeue loop", Config.Default.Debug);
             List<KeyValuePair<LogChannel, string>> toSend = new();
             lock (Messages)
             {
@@ -232,7 +232,7 @@ public class Bot
                     }
                     else
                     {
-                        Log.Debug(ServerNumber, nameof(DequeueMessages), $"Sending message to {message.Key.Id}: {message.Key.LogType} -- {message.Value}");
+                        Log.Debug(ServerNumber, nameof(DequeueMessages), $"Sending message to {message.Key.Id}: {message.Key.LogType} -- {message.Value}", Config.Default.Debug);
                         switch (message.Key.LogType)
                         {
                             case LogType.Embed:
@@ -244,17 +244,17 @@ public class Bot
                             default:
                                 throw new ArgumentOutOfRangeException();
                         }
-                        Log.Debug(ServerNumber, nameof(DequeueMessages), "Message sent.");
+                        Log.Debug(ServerNumber, nameof(DequeueMessages), "Message sent.", Config.Default.Debug);
                     }
                 }
                 catch (Exception e)
                 {
                     Log.Error(ServerNumber, nameof(DequeueMessages), $"{e.Message}\nThis is likely caused because {message.Key.Id} is not a valid channel ID, or an invalid GuildID: {Program.Config.DiscordServerIds[ServerNumber]}. If the GuildID is correct, to avoid this error, disabling the logging of events targeting channels that you've purposefully set to an invalid channel ID.\nEnable debug mode to show the contents of the messages causing this error.");
-                    Log.Debug(ServerNumber, nameof(DequeueMessages), $"{e.Message}\n{message.Value}");
+                    Log.Debug(ServerNumber, nameof(DequeueMessages), $"{e.Message}\n{message.Value}", Config.Default.Debug);
                 }
             }
 
-            Log.Debug(ServerNumber, nameof(DequeueMessages), $"Waiting {Program.Config.MessageDelay} ms");
+            Log.Debug(ServerNumber, nameof(DequeueMessages), $"Waiting {Program.Config.MessageDelay} ms", Config.Default.Debug);
             await Task.Delay(Program.Config.MessageDelay);
         }
     }

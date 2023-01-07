@@ -76,7 +76,7 @@ namespace DiscordIntegration.API.Configs
             {
                 try
                 {
-                    Log.Debug($"{nameof(UpdateActivity)}: Updating bot activity: {Player.Count}/{Instance.Slots}");
+                    Log.Debug($"{nameof(UpdateActivity)}: Updating bot activity: {Player.Count}/{Instance.Slots}", Instance.Config.Debug);
                     await Network.SendAsync(new RemoteCommand(ActionType.UpdateActivity, $"{Player.Count}/{Instance.Slots}"), cancellationToken);
                     await Task.Delay(TimeSpan.FromSeconds(Instance.Config.Bot.StatusUpdateInterval), cancellationToken);
                 }

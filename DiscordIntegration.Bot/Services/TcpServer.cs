@@ -186,14 +186,14 @@ namespace DiscordIntegration.Bot.Services
             {
                 if (!IsConnected)
                 {
-                    Log.Debug(bot.ServerNumber, nameof(SendAsync), "Sending aborted, not connected.");
+                    Log.Debug(bot.ServerNumber, nameof(SendAsync), "Sending aborted, not connected.", Config.Default.Debug);
                     return;
                 }
                 
 
                 string serializedObject = JsonConvert.SerializeObject(data, JsonSerializerSettings);
 
-                Log.Debug(bot.ServerNumber, nameof(SendAsync), $"Sending {serializedObject}");
+                Log.Debug(bot.ServerNumber, nameof(SendAsync), $"Sending {serializedObject}", Config.Default.Debug);
                 byte[] bytesToSend = Encoding.UTF8.GetBytes(serializedObject + '\0');
 
                 await TcpClient?.GetStream().WriteAsync(bytesToSend, 0, bytesToSend.Length, cancellationToken)!;
@@ -307,7 +307,7 @@ namespace DiscordIntegration.Bot.Services
 
             if (TcpClient is null)
             {
-                Log.Debug(bot.ServerNumber, nameof(ReceiveAsync), "Client is null, aborting.");
+                Log.Debug(bot.ServerNumber, nameof(ReceiveAsync), "Client is null, aborting.", Config.Default.Debug);
                 return;
             }
 
