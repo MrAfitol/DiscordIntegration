@@ -5,14 +5,14 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
+using PluginAPI.Core;
+
 namespace DiscordIntegration.Patches
 {
 #pragma warning disable SA1118
 
     using System.Collections.Generic;
     using System.Reflection.Emit;
-
-    using Exiled.API.Features;
     using global::DiscordIntegration.Dependency;
 
     using HarmonyLib;
@@ -21,9 +21,18 @@ namespace DiscordIntegration.Patches
 
     using static HarmonyLib.AccessTools;
 
-    [HarmonyPatch(typeof(Log), nameof(Log.Error), typeof(object))]
-    [HarmonyPatch(typeof(Log), nameof(Log.Error), typeof(string))]
-    internal class ErrorLoggingPatch
+    [HarmonyPatch(typeof(Log), nameof(Log.Error))]
+    public class LogErrorPatch
+    {
+        // I dont know transpilers so... yeah im bad in harmony 
+        public static void PostFix(string message, string prefix = null)
+        {
+            if (DiscordIntegration.Instance.Config.LogErrors)
+                _ = DiscordIntegration.Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.Errors, message));
+        }
+    }
+    
+    /*internal class ErrorLoggingPatch
     {
         private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator generator)
         {
@@ -52,5 +61,5 @@ namespace DiscordIntegration.Patches
             if (DiscordIntegration.Instance.Config.LogErrors)
                 _ = DiscordIntegration.Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.Errors, message));
         }
-    }
+    }*/
 }

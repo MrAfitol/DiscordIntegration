@@ -6,13 +6,13 @@
 // -----------------------------------------------------------------------
 
 using DiscordIntegration.Dependency.Database;
+using NWAPIPermissionSystem;
+using PluginAPI.Core;
 
 namespace DiscordIntegration.Commands
 {
     using System;
     using CommandSystem;
-    using Exiled.API.Features;
-    using Exiled.Permissions.Extensions;
     using static DiscordIntegration;
 
     /// <summary>
@@ -20,11 +20,6 @@ namespace DiscordIntegration.Commands
     /// </summary>
     internal sealed class WatchlistAdd : ICommand
     {
-#pragma warning disable SA1600 // Elements should be documented
-        private WatchlistAdd()
-        {
-        }
-
         public static WatchlistAdd Instance { get; } = new WatchlistAdd();
 
         public string Command { get; } = "watchadd";

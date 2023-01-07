@@ -12,8 +12,8 @@ namespace DiscordIntegration.Commands
     using CommandSystem;
     using static DiscordIntegration;
 
-    [CommandHandler(typeof(RemoteAdminCommandHandler))]
-    [CommandHandler(typeof(GameConsoleCommandHandler))]
+    //[CommandHandler(typeof(RemoteAdminCommandHandler))]
+    //[CommandHandler(typeof(GameConsoleCommandHandler))]
     internal sealed class Main : ParentCommand
     {
         public Main() => LoadGeneratedCommands();

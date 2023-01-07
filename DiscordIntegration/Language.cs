@@ -5,11 +5,13 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
+using PluginAPI.Core;
+using PluginAPI.Helpers;
+
 namespace DiscordIntegration
 {
     using System;
     using System.IO;
-    using Exiled.API.Features;
     using Newtonsoft.Json;
     using static DiscordIntegration;
 
@@ -33,7 +35,7 @@ namespace DiscordIntegration
         /// <summary>
         /// Gets the language folder.
         /// </summary>
-        public static string Folder { get; } = Path.Combine(Paths.Plugins, Instance.Name, "Languages");
+        public static string Folder { get; } = Path.Combine(Paths.GlobalPlugins.ToString(), "DiscordIntegration", "Languages");
 
         /// <summary>
         /// Gets the language fullpath.
@@ -144,16 +146,16 @@ namespace DiscordIntegration
 
         public string GeneratorFinished { get; set; } = "Generator in {0} has finished it's charge up, {1} generators have been activated.";
 
-        public string GeneratorInserted { get; set; } = ":calling: {0} ({1}) [{2}] has inserted a tablet into a generator.";
+        public string GeneratorInserted { get; set; } = ":calling: {0} ({1}) [{2}] has inserted has activated a generator.";
 
         public string GeneratorUnlocked { get; set; } = ":unlock: {0} ({1}) [{2}] has unlocked a generator door.";
 
         public string Scp106WasContained { get; set; } = "{0} ({1}) [{2}] has been contained by the Femur Breaker.";
 
-        public string Scp106CreatedPortal { get; set; } = "{0} ({1}) [{2}] has created a portal.";
+        public string Scp106StartStalking { get; set; } = "{0} ({1}) [{2}] is stalking.";
 
         public string Scp106Teleported { get; set; } = "{0} ({1}) [{2}] has teleported to a portal.";
-
+        public string Scp106TeleportPlayer { get; set; } = "{0} ({1}) has teleported {2} ({3}) to pocked dimension";
         public string GainedExperience { get; set; } = "{0} ({1}) [{2}] has gained {3} XP ({4}).";
 
         public string GainedLevel { get; set; } = "{0} ({1}) [{2}] has gained a level: {3} :arrow_right: {4}.";
@@ -330,7 +332,7 @@ namespace DiscordIntegration
 
         private void Error(object sender, Newtonsoft.Json.Serialization.ErrorEventArgs ev)
         {
-            Log.Warn($"Translation not found for \"{ev.ErrorContext.Member}\" key, loading default one...");
+            Log.Warning($"Translation not found for \"{ev.ErrorContext.Member}\" key, loading default one...");
 
             ev.ErrorContext.Handled = true;
         }

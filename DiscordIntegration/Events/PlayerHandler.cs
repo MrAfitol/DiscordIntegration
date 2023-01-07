@@ -5,18 +5,26 @@
 // </copyright>
 // -----------------------------------------------------------------------
 
+using CommandSystem;
 using DiscordIntegration.Dependency.Database;
-using Exiled.Events.EventArgs.Player;
-using Exiled.Events.EventArgs.Scp079;
-using Exiled.Events.EventArgs.Scp106;
-using Exiled.Events.EventArgs.Scp914;
+using Interactables.Interobjects;
+using Interactables.Interobjects.DoorUtils;
+using InventorySystem.Items;
+using InventorySystem.Items.Firearms;
+using MapGeneration.Distributors;
 using PlayerRoles;
+using PlayerRoles.PlayableScps.Scp079;
+using PlayerStatsSystem;
+using PluginAPI.Core;
+using PluginAPI.Core.Attributes;
+using PluginAPI.Enums;
+using Scp914;
+using UnityEngine;
 
 namespace DiscordIntegration.Events
 {
     using System;
     using Dependency;
-    using Exiled.API.Features;
     using static DiscordIntegration;
 
     /// <summary>
@@ -24,292 +32,356 @@ namespace DiscordIntegration.Events
     /// </summary>
     internal sealed class PlayerHandler
     {
+        private readonly DiscordIntegration Plugin;
+        public PlayerHandler(DiscordIntegration plugin)
+        {
+            Plugin = plugin;
+        }
+        
 #pragma warning disable SA1600 // Elements should be documented
-        public async void OnInsertingGeneratorTablet(ActivatingGeneratorEventArgs ev)
+        [PluginEvent(ServerEventType.PlayerActivateGenerator)]
+        public async void OnInsertingGeneratorTablet(Player ply, Scp079Generator generator)
         {
-            if (Instance.Config.EventsToLog.PlayerInsertingGeneratorTablet && (!ev.Player.DoNotTrack || !Instance.Config.ShouldRespectDoNotTrack))
-                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.GameEvents, string.Format(Language.GeneratorInserted, ev.Player.Nickname, Instance.Config.ShouldLogUserIds ? ev.Player.UserId : Language.Redacted, ev.Player.Role))).ConfigureAwait(false);
-            if (Instance.Config.StaffOnlyEventsToLog.PlayerInsertingGeneratorTablet)
-                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.StaffCopy, string.Format(Language.GeneratorInserted, ev.Player.Nickname, ev.Player.UserId, ev.Player.Role))).ConfigureAwait(false);
+            if (Instance.Config.EventsToLog.PlayerActivatedGenerator && (!ply.DoNotTrack || !Instance.Config.ShouldRespectDoNotTrack))
+                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.GameEvents, string.Format(Language.GeneratorInserted, ply.Nickname, Instance.Config.ShouldLogUserIds ? ply.UserId : Language.Redacted, ply.Role))).ConfigureAwait(false);
+            if (Instance.Config.StaffOnlyEventsToLog.PlayerActivatedGenerator)
+                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.StaffCopy, string.Format(Language.GeneratorInserted, ply.Nickname, ply.UserId, ply.Role))).ConfigureAwait(false);
         }
+        
 
-        public async void OnOpeningGenerator(OpeningGeneratorEventArgs ev)
+        [PluginEvent(ServerEventType.PlayerOpenGenerator)]
+        public async void OnOpeningGenerator(Player ply, Scp079Generator generator)
         {
-            if (Instance.Config.EventsToLog.PlayerOpeningGenerator && (!ev.Player.DoNotTrack || !Instance.Config.ShouldRespectDoNotTrack))
-                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.GameEvents, string.Format(Language.GeneratorOpened, ev.Player.Nickname, Instance.Config.ShouldLogUserIds ? ev.Player.UserId : Language.Redacted, ev.Player.Role))).ConfigureAwait(false);
+            if (Instance.Config.EventsToLog.PlayerOpeningGenerator && (!ply.DoNotTrack || !Instance.Config.ShouldRespectDoNotTrack))
+                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.GameEvents, string.Format(Language.GeneratorOpened, ply.Nickname, Instance.Config.ShouldLogUserIds ? ply.UserId : Language.Redacted, ply.Role))).ConfigureAwait(false);
             if (Instance.Config.StaffOnlyEventsToLog.PlayerOpeningGenerator)
-                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.StaffCopy, string.Format(Language.GeneratorOpened, ev.Player.Nickname, ev.Player.UserId, ev.Player.Role))).ConfigureAwait(false);
+                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.StaffCopy, string.Format(Language.GeneratorOpened, ply.Nickname, ply.UserId, ply.Role))).ConfigureAwait(false);
         }
 
-        public async void OnUnlockingGenerator(UnlockingGeneratorEventArgs ev)
+        [PluginEvent(ServerEventType.PlayerUnlockGenerator)]
+        public async void OnUnlockingGenerator(Player ply, Scp079Generator generator)
         {
-            if (Instance.Config.EventsToLog.PlayerUnlockingGenerator && (!ev.Player.DoNotTrack || !Instance.Config.ShouldRespectDoNotTrack))
-                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.GameEvents, string.Format(Language.GeneratorUnlocked, ev.Player.Nickname, Instance.Config.ShouldLogUserIds ? ev.Player.UserId : Language.Redacted, ev.Player.Role))).ConfigureAwait(false);
+            if (Instance.Config.EventsToLog.PlayerUnlockingGenerator && (!ply.DoNotTrack || !Instance.Config.ShouldRespectDoNotTrack))
+                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.GameEvents, string.Format(Language.GeneratorUnlocked, ply.Nickname, Instance.Config.ShouldLogUserIds ? ply.UserId : Language.Redacted, ply.Role))).ConfigureAwait(false);
             if (Instance.Config.StaffOnlyEventsToLog.PlayerUnlockingGenerator)
-                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.StaffCopy, string.Format(Language.GeneratorUnlocked, ev.Player.Nickname, ev.Player.UserId, ev.Player.Role))).ConfigureAwait(false);
+                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.StaffCopy, string.Format(Language.GeneratorUnlocked, ply.Nickname, ply.UserId, ply.Role))).ConfigureAwait(false);
         }
 
-        public async void OnChangingItem(ChangingItemEventArgs ev)
+        // This dont exist
+        /*
+        public async void OnContaining(ContainingEventArgs ev)
         {
-            if (Instance.Config.EventsToLog.ChangingPlayerItem && (!ev.Player.DoNotTrack || !Instance.Config.ShouldRespectDoNotTrack))
-                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.GameEvents, string.Format(Language.ItemChanged, ev.Player.Nickname, Instance.Config.ShouldLogUserIds ? ev.Player.UserId : Language.Redacted, ev.Player.CurrentItem.Type, ev.NewItem.Type))).ConfigureAwait(false);
+            if (Instance.Config.EventsToLog.ContainingScp106 && (!ev.Player.DoNotTrack || !Instance.Config.ShouldRespectDoNotTrack))
+                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.GameEvents, string.Format(Language.Scp106WasContained, ev.Player.Nickname, Instance.Config.ShouldLogUserIds ? ev.Player.UserId : Language.Redacted, ev.Player.Role))).ConfigureAwait(false);
+            if (Instance.Config.StaffOnlyEventsToLog.ContainingScp106)
+                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.StaffCopy, string.Format(Language.Scp106WasContained, ev.Player.Nickname, ev.Player.UserId, ev.Player.Role))).ConfigureAwait(false);
+        }*/
+
+        [PluginEvent(ServerEventType.Scp106Stalking)]
+        public async void OnCreatingPortal(Player ply, bool isActive)
+        {
+            if (Instance.Config.EventsToLog.Scp106StartStalking && (!ply.DoNotTrack || !Instance.Config.ShouldRespectDoNotTrack))
+                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.GameEvents, string.Format(Language.Scp106StartStalking, ply.Nickname, Instance.Config.ShouldLogUserIds ? ply.UserId : Language.Redacted, ply.Role))).ConfigureAwait(false);
+            if (Instance.Config.StaffOnlyEventsToLog.Scp106StartStalking)
+                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.StaffCopy, string.Format(Language.Scp106StartStalking, ply.Nickname, ply.UserId, ply.Role))).ConfigureAwait(false);
+        }
+
+        [PluginEvent(ServerEventType.PlayerChangeItem)]
+        public async void OnChangingItem(Player ply, ushort oldItem, ushort newItem )
+        {
+            var newItembase =  ply.ReferenceHub.inventory.UserInventory.Items[newItem];
+            
+            if (Instance.Config.EventsToLog.ChangingPlayerItem && (!ply.DoNotTrack || !Instance.Config.ShouldRespectDoNotTrack))
+                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.GameEvents, string.Format(Language.ItemChanged, ply.Nickname, Instance.Config.ShouldLogUserIds ? ply.UserId : Language.Redacted, ply.CurrentItem.ItemTypeId, newItembase.ItemTypeId))).ConfigureAwait(false);
             if (Instance.Config.StaffOnlyEventsToLog.ChangingPlayerItem)
-                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.StaffCopy, string.Format(Language.ItemChanged, ev.Player.Nickname, ev.Player.UserId, ev.Player.CurrentItem.Type, ev.NewItem.Type))).ConfigureAwait(false);
+                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.StaffCopy, string.Format(Language.ItemChanged, ply.Nickname, ply.UserId, ply.CurrentItem.ItemTypeId, newItembase.ItemTypeId))).ConfigureAwait(false);
         }
 
-        public async void OnGainingExperience(GainingExperienceEventArgs ev)
+        [PluginEvent(ServerEventType.Scp079GainExperience)]
+        public async void OnGainingExperience(Player ply, int amount, Scp079HudTranslation reason)
         {
-            if (Instance.Config.EventsToLog.GainingScp079Experience && (!ev.Player.DoNotTrack || !Instance.Config.ShouldRespectDoNotTrack))
-                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.GameEvents, string.Format(Language.GainedExperience, ev.Player.Nickname, Instance.Config.ShouldLogUserIds ? ev.Player.UserId : Language.Redacted, ev.Player.Role, ev.Amount, ev.GainType))).ConfigureAwait(false);
+            if (Instance.Config.EventsToLog.GainingScp079Experience && (!ply.DoNotTrack || !Instance.Config.ShouldRespectDoNotTrack))
+                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.GameEvents, string.Format(Language.GainedExperience, ply.Nickname, Instance.Config.ShouldLogUserIds ? ply.UserId : Language.Redacted, ply.Role, amount, reason))).ConfigureAwait(false);
             if (Instance.Config.StaffOnlyEventsToLog.GainingScp079Experience)
-                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.StaffCopy, string.Format(Language.GainedExperience, ev.Player.Nickname, ev.Player.UserId, ev.Player.Role, ev.Amount, ev.GainType))).ConfigureAwait(false);
+                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.StaffCopy, string.Format(Language.GainedExperience, ply.Nickname, ply.UserId, ply.Role, amount, reason))).ConfigureAwait(false);
         }
 
-        public async void OnGainingLevel(GainingLevelEventArgs ev)
+        [PluginEvent(ServerEventType.Scp079LevelUpTier)]
+        public async void OnGainingLevel(Player ply, int tier)
         {
-            if (Instance.Config.EventsToLog.GainingScp079Level && (!ev.Player.DoNotTrack || !Instance.Config.ShouldRespectDoNotTrack))
-#pragma warning disable CS0618 // Type or member is obsolete
-                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.GameEvents, string.Format(Language.GainedLevel, ev.Player.Nickname, Instance.Config.ShouldLogUserIds ? ev.Player.UserId : Language.Redacted, ev.Player.Role, ev.NewLevel - 1, ev.NewLevel))).ConfigureAwait(false);
+            if (Instance.Config.EventsToLog.GainingScp079Level && (!ply.DoNotTrack || !Instance.Config.ShouldRespectDoNotTrack))
+                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.GameEvents, string.Format(Language.GainedLevel, ply.Nickname, Instance.Config.ShouldLogUserIds ? ply.UserId : Language.Redacted, ply.Role, tier - 1, tier))).ConfigureAwait(false);
             if (Instance.Config.StaffOnlyEventsToLog.GainingScp079Level)
-                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.StaffCopy, string.Format(Language.GainedLevel, ev.Player.Nickname, ev.Player.UserId, ev.Player.Role, ev.NewLevel - 1, ev.NewLevel))).ConfigureAwait(false);
-#pragma warning restore CS0618 // Type or member is obsolete
+                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.StaffCopy, string.Format(Language.GainedLevel, ply.Nickname, ply.UserId, ply.Role, tier - 1, tier))).ConfigureAwait(false);
+
         }
 
-        public async void OnDestroying(DestroyingEventArgs ev)
+        [PluginEvent(ServerEventType.PlayerLeft)]
+        public async void OnDestroying(Player ply)
         {
-            if (Instance.Config.EventsToLog.PlayerLeft && (!ev.Player.DoNotTrack || !Instance.Config.ShouldRespectDoNotTrack))
-                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.GameEvents, string.Format(Language.LeftServer, ev.Player.Nickname, Instance.Config.ShouldLogUserIds ? ev.Player.UserId : Language.Redacted, ev.Player.Role))).ConfigureAwait(false);
+            if (Instance.Config.EventsToLog.PlayerLeft && (!ply.DoNotTrack || !Instance.Config.ShouldRespectDoNotTrack))
+                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.GameEvents, string.Format(Language.LeftServer, ply.Nickname, Instance.Config.ShouldLogUserIds ? ply.UserId : Language.Redacted, ply.Role))).ConfigureAwait(false);
             if (Instance.Config.StaffOnlyEventsToLog.PlayerLeft)
-                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.StaffCopy, string.Format(Language.LeftServer, ev.Player.Nickname, ev.Player.UserId, ev.Player.Role))).ConfigureAwait(false);
+                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.StaffCopy, string.Format(Language.LeftServer, ply.Nickname, ply.UserId, ply.Role))).ConfigureAwait(false);
         }
 
-        public async void OnReloadingWeapon(ReloadingWeaponEventArgs ev)
+        [PluginEvent(ServerEventType.PlayerReloadWeapon)]
+        public async void OnReloadingWeapon(Player ply, Firearm firearm)
         {
-            if (Instance.Config.EventsToLog.ReloadingPlayerWeapon && (!ev.Player.DoNotTrack || !Instance.Config.ShouldRespectDoNotTrack))
-                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.GameEvents, string.Format(Language.Reloaded, ev.Player.Nickname, Instance.Config.ShouldLogUserIds ? ev.Player.UserId : Language.Redacted, ev.Player.CurrentItem.Type, ev.Player.Role))).ConfigureAwait(false);
+            if (Instance.Config.EventsToLog.ReloadingPlayerWeapon && (!ply.DoNotTrack || !Instance.Config.ShouldRespectDoNotTrack))
+                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.GameEvents, string.Format(Language.Reloaded, ply.Nickname, Instance.Config.ShouldLogUserIds ? ply.UserId : Language.Redacted, ply.CurrentItem.ItemTypeId, ply.Role))).ConfigureAwait(false);
             if (Instance.Config.StaffOnlyEventsToLog.ReloadingPlayerWeapon)
-                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.StaffCopy, string.Format(Language.Reloaded, ev.Player.Nickname, ev.Player.UserId, ev.Player.CurrentItem.Type, ev.Player.Role))).ConfigureAwait(false);
+                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.StaffCopy, string.Format(Language.Reloaded, ply.Nickname, ply.UserId, ply.CurrentItem.ItemTypeId, ply.Role))).ConfigureAwait(false);
         }
 
+        /* // Nope
         public async void OnActivatingWarheadPanel(ActivatingWarheadPanelEventArgs ev)
         {
             if (Instance.Config.EventsToLog.PlayerActivatingWarheadPanel && (!ev.Player.DoNotTrack || !Instance.Config.ShouldRespectDoNotTrack))
                 await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.GameEvents, string.Format(Language.AccessedWarhead, ev.Player.Nickname, Instance.Config.ShouldLogUserIds ? ev.Player.UserId : Language.Redacted, ev.Player.Role))).ConfigureAwait(false);
             if (Instance.Config.StaffOnlyEventsToLog.PlayerActivatingWarheadPanel)
                 await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.StaffCopy, string.Format(Language.AccessedWarhead, ev.Player.Nickname, ev.Player.UserId, ev.Player.Role))).ConfigureAwait(false);
-        }
+        }*/
 
-        public async void OnInteractingElevator(InteractingElevatorEventArgs ev)
+        [PluginEvent(ServerEventType.PlayerInteractElevator)]
+        public async void OnInteractingElevator(Player ply, ElevatorChamber elevator)
         {
-            if (Instance.Config.EventsToLog.PlayerInteractingElevator && (!ev.Player.DoNotTrack || !Instance.Config.ShouldRespectDoNotTrack))
-                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.GameEvents, string.Format(Language.CalledElevator, ev.Player.Nickname, Instance.Config.ShouldLogUserIds ? ev.Player.UserId : Language.Redacted, ev.Player.Role))).ConfigureAwait(false);
+            if (Instance.Config.EventsToLog.PlayerInteractingElevator && (!ply.DoNotTrack || !Instance.Config.ShouldRespectDoNotTrack))
+                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.GameEvents, string.Format(Language.CalledElevator, ply.Nickname, Instance.Config.ShouldLogUserIds ? ply.UserId : Language.Redacted, ply.Role))).ConfigureAwait(false);
             if (Instance.Config.StaffOnlyEventsToLog.PlayerInteractingElevator)
-                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.StaffCopy, string.Format(Language.CalledElevator, ev.Player.Nickname, ev.Player.UserId, ev.Player.Role))).ConfigureAwait(false);
+                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.StaffCopy, string.Format(Language.CalledElevator, ply.Nickname, ply.UserId, ply.Role))).ConfigureAwait(false);
         }
 
-        public async void OnInteractingLocker(InteractingLockerEventArgs ev)
+        [PluginEvent(ServerEventType.PlayerInteractLocker)]
+        public async void OnInteractingLocker(Player ply, Locker locker, LockerChamber chamber, bool canOpen)
         {
-            if (Instance.Config.EventsToLog.PlayerInteractingLocker && (!ev.Player.DoNotTrack || !Instance.Config.ShouldRespectDoNotTrack))
-                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.GameEvents, string.Format(Language.UsedLocker, ev.Player.Nickname, Instance.Config.ShouldLogUserIds ? ev.Player.UserId : Language.Redacted, ev.Player.Role))).ConfigureAwait(false);
+            if (Instance.Config.EventsToLog.PlayerInteractingLocker && (!ply.DoNotTrack || !Instance.Config.ShouldRespectDoNotTrack))
+                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.GameEvents, string.Format(Language.UsedLocker, ply.Nickname, Instance.Config.ShouldLogUserIds ? ply.UserId : Language.Redacted, ply.Role))).ConfigureAwait(false);
             if (Instance.Config.StaffOnlyEventsToLog.PlayerInteractingLocker)
-                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.StaffCopy, string.Format(Language.UsedLocker, ev.Player.Nickname, ev.Player.UserId, ev.Player.Role))).ConfigureAwait(false);
+                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.StaffCopy, string.Format(Language.UsedLocker, ply.Nickname, ply.UserId, ply.Role))).ConfigureAwait(false);
         }
-
-        public async void OnTriggeringTesla(TriggeringTeslaEventArgs ev)
+        
+        /*public async void OnTriggeringTesla(TriggeringTeslaEventArgs ev)
         {
             if (Instance.Config.EventsToLog.PlayerTriggeringTesla && (!ev.Player.DoNotTrack || !Instance.Config.ShouldRespectDoNotTrack))
                 await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.GameEvents, string.Format(Language.HasTriggeredATeslaGate, ev.Player.Nickname, Instance.Config.ShouldLogUserIds ? ev.Player.UserId : Language.Redacted, ev.Player.Role))).ConfigureAwait(false);
             if (Instance.Config.StaffOnlyEventsToLog.PlayerTriggeringTesla)
                 await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.StaffCopy, string.Format(Language.HasTriggeredATeslaGate, ev.Player.Nickname, ev.Player.UserId, ev.Player.Role))).ConfigureAwait(false);
-        }
+        }*/
 
-        public async void OnClosingGenerator(ClosingGeneratorEventArgs ev)
+        [PluginEvent(ServerEventType.PlayerCloseGenerator)]
+        public async void OnClosingGenerator(Player ply, Scp079Generator generator)
         {
-            if (Instance.Config.EventsToLog.PlayerClosingGenerator && (!ev.Player.DoNotTrack || !Instance.Config.ShouldRespectDoNotTrack))
-                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.GameEvents, string.Format(Language.GeneratorClosed, ev.Player.Nickname, Instance.Config.ShouldLogUserIds ? ev.Player.UserId : Language.Redacted, ev.Player.Role))).ConfigureAwait(false);
+            if (Instance.Config.EventsToLog.PlayerClosingGenerator && (!ply.DoNotTrack || !Instance.Config.ShouldRespectDoNotTrack))
+                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.GameEvents, string.Format(Language.GeneratorClosed, ply.Nickname, Instance.Config.ShouldLogUserIds ? ply.UserId : Language.Redacted, ply.Role))).ConfigureAwait(false);
             if (Instance.Config.StaffOnlyEventsToLog.PlayerClosingGenerator)
-                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.StaffCopy, string.Format(Language.GeneratorClosed, ev.Player.Nickname, ev.Player.UserId, ev.Player.Role))).ConfigureAwait(false);
+                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.StaffCopy, string.Format(Language.GeneratorClosed, ply.Nickname, ply.UserId, ply.Role))).ConfigureAwait(false);
         }
 
-        public async void OnEjectingGeneratorTablet(StoppingGeneratorEventArgs ev)
+        [PluginEvent(ServerEventType.PlayerDeactivatedGenerator)]
+        public async void OnStoppingGenerator(Player ply, Scp079Generator generator)
         {
-            if (Instance.Config.EventsToLog.PlayerEjectingGeneratorTablet && (!ev.Player.DoNotTrack || !Instance.Config.ShouldRespectDoNotTrack))
-                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.GameEvents, string.Format(Language.GeneratorEjected, ev.Player.Nickname, Instance.Config.ShouldLogUserIds ? ev.Player.UserId : Language.Redacted, ev.Player.Role))).ConfigureAwait(false);
+            if (Instance.Config.EventsToLog.PlayerEjectingGeneratorTablet && (!ply.DoNotTrack || !Instance.Config.ShouldRespectDoNotTrack))
+                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.GameEvents, string.Format(Language.GeneratorEjected, ply.Nickname, Instance.Config.ShouldLogUserIds ? ply.UserId : Language.Redacted, ply.Role))).ConfigureAwait(false);
             if (Instance.Config.StaffOnlyEventsToLog.PlayerEjectingGeneratorTablet)
-                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.StaffCopy, string.Format(Language.GeneratorEjected, ev.Player.Nickname, ev.Player.UserId, ev.Player.Role))).ConfigureAwait(false);
+                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.StaffCopy, string.Format(Language.GeneratorEjected, ply.Nickname, ply.UserId, ply.Role))).ConfigureAwait(false);
         }
 
-        public async void OnInteractingDoor(InteractingDoorEventArgs ev)
+        [PluginEvent(ServerEventType.PlayerInteractDoor)]
+        public async void OnInteractingDoor(Player ply, DoorVariant door, bool canOpen)
         {
-            if (Instance.Config.EventsToLog.PlayerInteractingDoor && (!ev.Player.DoNotTrack || !Instance.Config.ShouldRespectDoNotTrack))
-                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.GameEvents, string.Format(ev.Door.IsOpen ? Language.HasClosedADoor : Language.HasOpenedADoor, ev.Player.Nickname, Instance.Config.ShouldLogUserIds ? ev.Player.UserId : Language.Redacted, ev.Player.Role, ev.Door.Nametag))).ConfigureAwait(false);
+            if (Instance.Config.EventsToLog.PlayerInteractingDoor && (!ply.DoNotTrack || !Instance.Config.ShouldRespectDoNotTrack))
+                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.GameEvents, string.Format(door.IsConsideredOpen() ? Language.HasClosedADoor : Language.HasOpenedADoor, ply.Nickname, Instance.Config.ShouldLogUserIds ? ply.UserId : Language.Redacted, ply.Role, door.name))).ConfigureAwait(false);
             if (Instance.Config.StaffOnlyEventsToLog.PlayerInteractingDoor)
-                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.StaffCopy, string.Format(ev.Door.IsOpen ? Language.HasClosedADoor : Language.HasOpenedADoor, ev.Player.Nickname, ev.Player.UserId, ev.Player.Role, ev.Door.Nametag))).ConfigureAwait(false);
+                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.StaffCopy, string.Format(door.IsConsideredOpen() ? Language.HasClosedADoor : Language.HasOpenedADoor, ply.Nickname, ply.UserId, ply.Role, door.name))).ConfigureAwait(false);
         }
 
-        public async void OnActivatingScp914(ActivatingEventArgs ev)
+        [PluginEvent(ServerEventType.Scp914Activate)]
+        public async void OnActivatingScp914(Player ply, Scp914KnobSetting knobSetting)
         {
-            if (Instance.Config.EventsToLog.ActivatingScp914 && (!ev.Player.DoNotTrack || !Instance.Config.ShouldRespectDoNotTrack))
-                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.GameEvents, string.Format(Language.Scp914HasBeenActivated, ev.Player.Nickname, Instance.Config.ShouldLogUserIds ? ev.Player.UserId : Language.Redacted, ev.Player.Role, Scp914.KnobStatus))).ConfigureAwait(false);
+            if (Instance.Config.EventsToLog.ActivatingScp914 && (!ply.DoNotTrack || !Instance.Config.ShouldRespectDoNotTrack))
+                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.GameEvents, string.Format(Language.Scp914HasBeenActivated, ply.Nickname, Instance.Config.ShouldLogUserIds ? ply.UserId : Language.Redacted, ply.Role, knobSetting))).ConfigureAwait(false);
             if (Instance.Config.StaffOnlyEventsToLog.ActivatingScp914)
-                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.StaffCopy, string.Format(Language.Scp914HasBeenActivated, ev.Player.Nickname, ev.Player.UserId, ev.Player.Role, Scp914.KnobStatus))).ConfigureAwait(false);
+                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.StaffCopy, string.Format(Language.Scp914HasBeenActivated, ply.Nickname, ply.UserId, ply.Role, knobSetting))).ConfigureAwait(false);
         }
 
-        public async void OnChangingScp914KnobSetting(ChangingKnobSettingEventArgs ev)
+        [PluginEvent(ServerEventType.Scp914KnobChange)]
+        public async void OnChangingScp914KnobSetting(Player ply, Scp914KnobSetting knobSetting, Scp914KnobSetting previousKnobSetting)
         {
-            if (Instance.Config.EventsToLog.ChangingScp914KnobSetting && (!ev.Player.DoNotTrack || !Instance.Config.ShouldRespectDoNotTrack))
-                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.GameEvents, string.Format(Language.Scp914KnobSettingChanged, ev.Player.Nickname, Instance.Config.ShouldLogUserIds ? ev.Player.UserId : Language.Redacted, ev.Player.Role, ev.KnobSetting))).ConfigureAwait(false);
+            if (Instance.Config.EventsToLog.ChangingScp914KnobSetting && (!ply.DoNotTrack || !Instance.Config.ShouldRespectDoNotTrack))
+                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.GameEvents, string.Format(Language.Scp914KnobSettingChanged, ply.Nickname, Instance.Config.ShouldLogUserIds ? ply.UserId : Language.Redacted, ply.Role, knobSetting))).ConfigureAwait(false);
             if (Instance.Config.StaffOnlyEventsToLog.ChangingScp914KnobSetting)
-                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.StaffCopy, string.Format(Language.Scp914KnobSettingChanged, ev.Player.Nickname, ev.Player.UserId, ev.Player.Role, ev.KnobSetting))).ConfigureAwait(false);
+                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.StaffCopy, string.Format(Language.Scp914KnobSettingChanged, ply.Nickname, ply.UserId, ply.Role, knobSetting))).ConfigureAwait(false);
         }
 
-        public async void OnEnteringPocketDimension(EnteringPocketDimensionEventArgs ev)
+        [PluginEvent(ServerEventType.PlayerEnterPocketDimension)]
+        public async void OnEnteringPocketDimension(Player ply)
         {
-            if (Instance.Config.EventsToLog.PlayerEnteringPocketDimension && (!ev.Player.DoNotTrack || !Instance.Config.ShouldRespectDoNotTrack))
-                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.GameEvents, string.Format(Language.HasEnteredPocketDimension, ev.Player.Nickname, Instance.Config.ShouldLogUserIds ? ev.Player.UserId : Language.Redacted, ev.Player.Role))).ConfigureAwait(false);
+            if (Instance.Config.EventsToLog.PlayerEnteringPocketDimension && (!ply.DoNotTrack || !Instance.Config.ShouldRespectDoNotTrack))
+                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.GameEvents, string.Format(Language.HasEnteredPocketDimension, ply.Nickname, Instance.Config.ShouldLogUserIds ? ply.UserId : Language.Redacted, ply.Role))).ConfigureAwait(false);
             if (Instance.Config.StaffOnlyEventsToLog.PlayerEnteringPocketDimension)
-                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.StaffCopy, string.Format(Language.HasEnteredPocketDimension, ev.Player.Nickname, ev.Player.UserId, ev.Player.Role))).ConfigureAwait(false);
+                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.StaffCopy, string.Format(Language.HasEnteredPocketDimension, ply.Nickname, ply.UserId, ply.Role))).ConfigureAwait(false);
+        }
+        
+        [PluginEvent(ServerEventType.PlayerExitPocketDimension)]
+        public async void OnEscapingPocketDimension(Player ply, bool isSuccessful)
+        {
+            if (Instance.Config.EventsToLog.PlayerEscapingPocketDimension && isSuccessful && (!ply.DoNotTrack || !Instance.Config.ShouldRespectDoNotTrack))
+                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.GameEvents, string.Format(Language.HasEscapedPocketDimension, ply.Nickname, Instance.Config.ShouldLogUserIds ? ply.UserId : Language.Redacted, ply.Role))).ConfigureAwait(false);
+            if (Instance.Config.StaffOnlyEventsToLog.PlayerEscapingPocketDimension && isSuccessful)
+                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.StaffCopy, string.Format(Language.HasEscapedPocketDimension, ply.Nickname, ply.UserId, ply.Role))).ConfigureAwait(false);
         }
 
-        public async void OnEscapingPocketDimension(EscapingPocketDimensionEventArgs ev)
+        [PluginEvent(ServerEventType.Scp106TeleportPlayer)]
+        public async void OnScp106TeleportPlayer(Player scp106, Player target)
         {
-            if (Instance.Config.EventsToLog.PlayerEscapingPocketDimension && (!ev.Player.DoNotTrack || !Instance.Config.ShouldRespectDoNotTrack))
-                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.GameEvents, string.Format(Language.HasEscapedPocketDimension, ev.Player.Nickname, Instance.Config.ShouldLogUserIds ? ev.Player.UserId : Language.Redacted, ev.Player.Role))).ConfigureAwait(false);
-            if (Instance.Config.StaffOnlyEventsToLog.PlayerEscapingPocketDimension)
-                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.StaffCopy, string.Format(Language.HasEscapedPocketDimension, ev.Player.Nickname, ev.Player.UserId, ev.Player.Role))).ConfigureAwait(false);
-        }
-
-        public async void OnTeleporting(TeleportingEventArgs ev)
-        {
-            if (Instance.Config.EventsToLog.Scp106Teleporting && (!ev.Player.DoNotTrack || !Instance.Config.ShouldRespectDoNotTrack))
-                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.GameEvents, string.Format(Language.Scp106Teleported, ev.Player.Nickname, Instance.Config.ShouldLogUserIds ? ev.Player.UserId : Language.Redacted, ev.Player.Role))).ConfigureAwait(false);
+            if (Instance.Config.EventsToLog.Scp106Teleporting && (!scp106.DoNotTrack || !Instance.Config.ShouldRespectDoNotTrack))
+                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.GameEvents, string.Format(Language.Scp106TeleportPlayer, scp106.Nickname, Instance.Config.ShouldLogUserIds ? scp106.UserId : Language.Redacted, target.Nickname, Instance.Config.ShouldLogUserIds ? target.UserId : Language.Redacted))).ConfigureAwait(false);
             if (Instance.Config.StaffOnlyEventsToLog.Scp106Teleporting)
-                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.StaffCopy, string.Format(Language.Scp106Teleported, ev.Player.Nickname, ev.Player.UserId, ev.Player.Role))).ConfigureAwait(false);
+                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.StaffCopy, string.Format(Language.Scp106TeleportPlayer, scp106.Nickname, scp106.UserId, target.Nickname, target.UserId))).ConfigureAwait(false);
         }
 
-        public async void OnInteractingTesla(InteractingTeslaEventArgs ev)
+        [PluginEvent(ServerEventType.Scp079UseTesla)]
+        public async void OnInteractingTesla(Player ply, TeslaGate tesla)
         {
-            if (Instance.Config.EventsToLog.Scp079InteractingTesla && (!ev.Player.DoNotTrack || !Instance.Config.ShouldRespectDoNotTrack))
-                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.GameEvents, string.Format(Language.HasTriggeredATeslaGate, ev.Player.Nickname, Instance.Config.ShouldLogUserIds ? ev.Player.UserId : Language.Redacted, ev.Player.Role))).ConfigureAwait(false);
+            if (Instance.Config.EventsToLog.Scp079InteractingTesla && (!ply.DoNotTrack || !Instance.Config.ShouldRespectDoNotTrack))
+                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.GameEvents, string.Format(Language.HasTriggeredATeslaGate, ply.Nickname, Instance.Config.ShouldLogUserIds ? ply.UserId : Language.Redacted, ply.Role))).ConfigureAwait(false);
             if (Instance.Config.StaffOnlyEventsToLog.Scp079InteractingTesla)
-                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.StaffCopy, string.Format(Language.HasTriggeredATeslaGate, ev.Player.Nickname, ev.Player.UserId, ev.Player.Role))).ConfigureAwait(false);
+                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.StaffCopy, string.Format(Language.HasTriggeredATeslaGate, ply.Nickname, ply.UserId, ply.Role))).ConfigureAwait(false);
         }
 
-        public async void OnHurting(HurtingEventArgs ev)
+        [PluginEvent(ServerEventType.PlayerDamage)]
+        public async void OnHurting(Player target, Player attacker, DamageHandlerBase damage)
         {
-            if (Instance.Config.EventsToLog.HurtingPlayer && ev.Player != null && (ev.Attacker == null || !Instance.Config.ShouldLogFriendlyFireDamageOnly || ev.Attacker.Role.Side == ev.Player.Role.Side) && (!Instance.Config.ShouldRespectDoNotTrack || (ev.Attacker == null || (!ev.Attacker.DoNotTrack && !ev.Player.DoNotTrack))) && !Instance.Config.BlacklistedDamageTypes.Contains(ev.DamageHandler.Type) && (!Instance.Config.OnlyLogPlayerDamage || ev.Attacker != null))
-                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.GameEvents, string.Format(Language.HasDamagedForWith, ev.Attacker != null ? ev.Attacker.Nickname : "Server", Instance.Config.ShouldLogUserIds ? ev.Attacker != null ? ev.Attacker.UserId : string.Empty : Language.Redacted, ev.Attacker?.Role ?? RoleTypeId.None, ev.Player.Nickname, Instance.Config.ShouldLogUserIds ? ev.Player.UserId : Language.Redacted, ev.Player.Role, ev.Amount, ev.DamageHandler.Type))).ConfigureAwait(false);
+            if (Instance.Config.EventsToLog.HurtingPlayer && target != null && (attacker == null || !Instance.Config.ShouldLogFriendlyFireDamageOnly || attacker.Role.GetTeam() == target.Role.GetTeam()) && (!Instance.Config.ShouldRespectDoNotTrack || (attacker == null || (!attacker.DoNotTrack && !target.DoNotTrack))) && !Instance.Config.BlacklistedDamageTypes.Contains(Extensions.GetDamageType(damage)) && (!Instance.Config.OnlyLogPlayerDamage || attacker != null))
+                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.GameEvents, string.Format(Language.HasDamagedForWith, attacker != null ? attacker.Nickname : "Server", Instance.Config.ShouldLogUserIds ? attacker != null ? attacker.UserId : string.Empty : Language.Redacted, attacker?.Role ?? RoleTypeId.None, target.Nickname, Instance.Config.ShouldLogUserIds ? target.UserId : Language.Redacted, target.Role, "NA", Extensions.GetDamageType(damage)))).ConfigureAwait(false);
 
-            if (Instance.Config.StaffOnlyEventsToLog.HurtingPlayer && ev.Player != null && (ev.Attacker == null || !Instance.Config.ShouldLogFriendlyFireDamageOnly || ev.Attacker.Role.Side == ev.Player.Role.Side) && !Instance.Config.BlacklistedDamageTypes.Contains(ev.DamageHandler.Type) && (!Instance.Config.OnlyLogPlayerDamage || ev.Attacker != null))
-                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.StaffCopy, string.Format(Language.HasDamagedForWith, ev.Attacker != null ? ev.Attacker.Nickname : "Server", ev.Attacker != null ? ev.Attacker.UserId : string.Empty, ev.Attacker?.Role ?? RoleTypeId.None, ev.Player.Nickname, ev.Player.UserId, ev.Player.Role, ev.Amount, ev.DamageHandler.Type))).ConfigureAwait(false);
+            if (Instance.Config.StaffOnlyEventsToLog.HurtingPlayer && target != null && (attacker == null || !Instance.Config.ShouldLogFriendlyFireDamageOnly || attacker.Role.GetTeam() == target.Role.GetTeam()) && !Instance.Config.BlacklistedDamageTypes.Contains(Extensions.GetDamageType(damage)) && (!Instance.Config.OnlyLogPlayerDamage || attacker != null))
+                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.StaffCopy, string.Format(Language.HasDamagedForWith, attacker != null ? attacker.Nickname : "Server", attacker != null ? attacker.UserId : string.Empty, attacker?.Role ?? RoleTypeId.None, target.Nickname, target.UserId, target.Role, "NA", Extensions.GetDamageType(damage)))).ConfigureAwait(false);
         }
 
-        public async void OnDying(DyingEventArgs ev)
+        [PluginEvent(ServerEventType.PlayerDeath)]
+        public async void OnDying(Player target, Player killer, DamageHandlerBase damage)
         {
-            if (Instance.Config.EventsToLog.PlayerDying && ev.Player != null && (ev.Attacker == null || !Instance.Config.ShouldLogFriendlyFireKillsOnly || ev.Attacker.Role.Side == ev.Player.Role.Side) && (!Instance.Config.ShouldRespectDoNotTrack || (ev.Attacker == null || (!ev.Attacker.DoNotTrack && !ev.Player.DoNotTrack))))
-                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.GameEvents, string.Format(Language.HasKilledWith, ev.Attacker != null ? ev.Attacker.Nickname : "Server", Instance.Config.ShouldLogUserIds ? ev.Attacker != null ? ev.Attacker.UserId : string.Empty : Language.Redacted, ev.Attacker?.Role ?? RoleTypeId.None, ev.Player.Nickname, Instance.Config.ShouldLogUserIds ? ev.Player.UserId : Language.Redacted, ev.Player.Role, ev.DamageHandler.Type))).ConfigureAwait(false);
+            if (Instance.Config.EventsToLog.PlayerDying && target != null && (killer == null || !Instance.Config.ShouldLogFriendlyFireKillsOnly || killer.Role.GetTeam() == target.Role.GetTeam()) && (!Instance.Config.ShouldRespectDoNotTrack || (killer == null || (!killer.DoNotTrack && !target.DoNotTrack))))
+                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.GameEvents, string.Format(Language.HasKilledWith, killer != null ? killer.Nickname : "Server", Instance.Config.ShouldLogUserIds ? killer != null ? killer.UserId : string.Empty : Language.Redacted, killer?.Role ?? RoleTypeId.None, target.Nickname, Instance.Config.ShouldLogUserIds ? target.UserId : Language.Redacted, target.Role, Extensions.GetDamageType(damage)))).ConfigureAwait(false);
 
-            if (Instance.Config.StaffOnlyEventsToLog.PlayerDying && ev.Player != null && (ev.Attacker == null || !Instance.Config.ShouldLogFriendlyFireKillsOnly || ev.Attacker.Role.Side == ev.Player.Role.Side))
-                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.StaffCopy, string.Format(Language.HasKilledWith, ev.Attacker != null ? ev.Attacker.Nickname : "Server", ev.Attacker != null ? ev.Attacker.UserId : string.Empty, ev.Attacker?.Role ?? RoleTypeId.None, ev.Player.Nickname, ev.Player.UserId, ev.Player.Role, ev.DamageHandler.Type))).ConfigureAwait(false);
+            if (Instance.Config.StaffOnlyEventsToLog.PlayerDying && target != null && (killer == null || !Instance.Config.ShouldLogFriendlyFireKillsOnly || killer.Role.GetTeam() == target.Role.GetTeam()))
+                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.StaffCopy, string.Format(Language.HasKilledWith, killer != null ? killer.Nickname : "Server", killer != null ? killer.UserId : string.Empty, killer?.Role ?? RoleTypeId.None, target.Nickname, target.UserId, target.Role, Extensions.GetDamageType(damage)))).ConfigureAwait(false);
         }
 
-        public async void OnThrowingGrenade(ThrownItemEventArgs ev)
+        [PluginEvent(ServerEventType.PlayerThrowItem)]
+        public async void OnThrowingGrenade(Player ply, ItemBase item, Rigidbody rigidbody)
         {
-            if (ev.Player != null && Instance.Config.EventsToLog.PlayerThrowingGrenade && (!ev.Player.DoNotTrack || !Instance.Config.ShouldRespectDoNotTrack))
-                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.GameEvents, string.Format(Language.ThrewAGrenade, ev.Player.Nickname, Instance.Config.ShouldLogUserIds ? ev.Player.UserId : Language.Redacted, ev.Player.Role, ev.Throwable.Type))).ConfigureAwait(false);
-            if (ev.Player != null && Instance.Config.StaffOnlyEventsToLog.PlayerThrowingGrenade)
-                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.StaffCopy, string.Format(Language.ThrewAGrenade, ev.Player.Nickname, ev.Player.UserId, ev.Player.Role, ev.Throwable.Type))).ConfigureAwait(false);
+            if (ply != null && Instance.Config.EventsToLog.PlayerThrowingGrenade && (!ply.DoNotTrack || !Instance.Config.ShouldRespectDoNotTrack))
+                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.GameEvents, string.Format(Language.ThrewAGrenade, ply.Nickname, Instance.Config.ShouldLogUserIds ? ply.UserId : Language.Redacted, ply.Role, item.ItemTypeId))).ConfigureAwait(false);
+            if (ply != null && Instance.Config.StaffOnlyEventsToLog.PlayerThrowingGrenade)
+                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.StaffCopy, string.Format(Language.ThrewAGrenade, ply.Nickname, ply.UserId, ply.Role, item.ItemTypeId))).ConfigureAwait(false);
         }
 
-        public async void OnUsedMedicalItem(UsedItemEventArgs ev)
+        [PluginEvent(ServerEventType.PlayerUsedItem)]
+        public async void OnUsedMedicalItem(Player ply, ItemBase item)
         {
-            if (ev.Player != null && Instance.Config.EventsToLog.PlayerUsedMedicalItem && (!ev.Player.DoNotTrack || !Instance.Config.ShouldRespectDoNotTrack))
-                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.GameEvents, string.Format(Language.UsedMedicalItem, ev.Player.Nickname, Instance.Config.ShouldLogUserIds ? ev.Player.UserId : Language.Redacted, ev.Player.Role, ev.Item))).ConfigureAwait(false);
-            if (ev.Player != null && Instance.Config.StaffOnlyEventsToLog.PlayerUsedMedicalItem)
-                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.StaffCopy, string.Format(Language.UsedMedicalItem, ev.Player.Nickname, ev.Player.UserId, ev.Player.Role, ev.Item))).ConfigureAwait(false);
+            if (ply != null && Instance.Config.EventsToLog.PlayerUsedMedicalItem && (!ply.DoNotTrack || !Instance.Config.ShouldRespectDoNotTrack))
+                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.GameEvents, string.Format(Language.UsedMedicalItem, ply.Nickname, Instance.Config.ShouldLogUserIds ? ply.UserId : Language.Redacted, ply.Role, item.ItemTypeId))).ConfigureAwait(false);
+            if (ply != null && Instance.Config.StaffOnlyEventsToLog.PlayerUsedMedicalItem)
+                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.StaffCopy, string.Format(Language.UsedMedicalItem, ply.Nickname, ply.UserId, ply.Role, item.ItemTypeId))).ConfigureAwait(false);
         }
 
-        public async void OnChangingRole(ChangingRoleEventArgs ev)
+        [PluginEvent(ServerEventType.PlayerChangeRole)]
+        public async void OnChangingRole(Player player, PlayerRoleBase newRole, RoleTypeId oldRole, RoleChangeReason reason)
         {
-            if (ev.Player != null && Instance.Config.EventsToLog.ChangingPlayerRole && (!ev.Player.DoNotTrack || !Instance.Config.ShouldRespectDoNotTrack))
-                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.GameEvents, string.Format(Language.ChangedRole, ev.Player.Nickname, Instance.Config.ShouldLogUserIds ? ev.Player.UserId : Language.Redacted, ev.Player.Role, ev.NewRole))).ConfigureAwait(false);
-            if (ev.Player != null && Instance.Config.StaffOnlyEventsToLog.ChangingPlayerRole)
-                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.StaffCopy, string.Format(Language.ChangedRole, ev.Player.Nickname, ev.Player.UserId, ev.Player.Role, ev.NewRole))).ConfigureAwait(false);
+            if (player != null && Instance.Config.EventsToLog.ChangingPlayerRole && (!player.DoNotTrack || !Instance.Config.ShouldRespectDoNotTrack))
+                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.GameEvents, string.Format(Language.ChangedRole, player.Nickname, Instance.Config.ShouldLogUserIds ? player.UserId : Language.Redacted, player.Role, newRole.RoleTypeId))).ConfigureAwait(false);
+            if (player != null && Instance.Config.StaffOnlyEventsToLog.ChangingPlayerRole)
+                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.StaffCopy, string.Format(Language.ChangedRole, player.Nickname, player.UserId, player.Role, newRole.RoleTypeId))).ConfigureAwait(false);
         }
 
-        public async void OnVerified(VerifiedEventArgs ev)
+        [PluginEvent(ServerEventType.PlayerJoined)]
+        public async void OnVerified(Player ply)
         {
             if (Instance.Config.UseWatchlist)
             {
-                if (DatabaseHandler.CheckWatchlist(ev.Player.UserId, out string reason))
+                if (DatabaseHandler.CheckWatchlist(ply.UserId, out string reason))
                     if (!string.IsNullOrEmpty(reason))
-                        await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.Watchlist, string.Format(Language.WatchlistedUserJoined, ev.Player.Nickname, ev.Player.UserId, ev.Player.IPAddress, reason)));
+                        await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.Watchlist, string.Format(Language.WatchlistedUserJoined, ply.Nickname, ply.UserId, ply.IpAddress, reason)));
             }
 
-            if (Instance.Config.EventsToLog.PlayerJoined && (!ev.Player.DoNotTrack || !Instance.Config.ShouldRespectDoNotTrack))
-                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.GameEvents, string.Format(Language.HasJoinedTheGame, ev.Player.Nickname, Instance.Config.ShouldLogUserIds ? ev.Player.UserId : Language.Redacted, Instance.Config.ShouldLogIPAddresses ? ev.Player.IPAddress : Language.Redacted))).ConfigureAwait(false);
+            if (Instance.Config.EventsToLog.PlayerJoined && (!ply.DoNotTrack || !Instance.Config.ShouldRespectDoNotTrack))
+                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.GameEvents, string.Format(Language.HasJoinedTheGame, ply.Nickname, Instance.Config.ShouldLogUserIds ? ply.UserId : Language.Redacted, Instance.Config.ShouldLogIPAddresses ? ply.IpAddress : Language.Redacted))).ConfigureAwait(false);
             if (Instance.Config.StaffOnlyEventsToLog.PlayerJoined)
-                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.StaffCopy, string.Format(Language.HasJoinedTheGame, ev.Player.Nickname, ev.Player.UserId, ev.Player.IPAddress))).ConfigureAwait(false);
+                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.StaffCopy, string.Format(Language.HasJoinedTheGame, ply.Nickname, ply.UserId, ply.IpAddress))).ConfigureAwait(false);
         }
 
-        public async void OnRemovingHandcuffs(RemovingHandcuffsEventArgs ev)
+        [PluginEvent(ServerEventType.PlayerRemoveHandcuffs)]
+        public async void OnRemovingHandcuffs(Player player, Player target)
         {
-            if (Instance.Config.EventsToLog.PlayerRemovingHandcuffs && ((!ev.Player.DoNotTrack && !ev.Target.DoNotTrack) || !Instance.Config.ShouldRespectDoNotTrack))
-                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.GameEvents, string.Format(Language.HasBeenFreedBy, ev.Target.Nickname, Instance.Config.ShouldLogUserIds ? ev.Target.UserId : Language.Redacted, ev.Target.Role, ev.Player.Nickname, Instance.Config.ShouldLogUserIds ? ev.Player.UserId : Language.Redacted, ev.Player.Role))).ConfigureAwait(false);
+            if (Instance.Config.EventsToLog.PlayerRemovingHandcuffs && ((!player.DoNotTrack && !target.DoNotTrack) || !Instance.Config.ShouldRespectDoNotTrack))
+                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.GameEvents, string.Format(Language.HasBeenFreedBy, target.Nickname, Instance.Config.ShouldLogUserIds ? target.UserId : Language.Redacted, target.Role, player.Nickname, Instance.Config.ShouldLogUserIds ? player.UserId : Language.Redacted, player.Role))).ConfigureAwait(false);
             if (Instance.Config.StaffOnlyEventsToLog.PlayerRemovingHandcuffs)
-                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.StaffCopy, string.Format(Language.HasBeenFreedBy, ev.Target.Nickname, ev.Target.UserId, ev.Target.Role, ev.Player.Nickname, ev.Player.UserId, ev.Player.Role))).ConfigureAwait(false);
+                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.StaffCopy, string.Format(Language.HasBeenFreedBy, target.Nickname, target.UserId, target.Role, player.Nickname, player.UserId, player.Role))).ConfigureAwait(false);
         }
 
-        public async void OnHandcuffing(HandcuffingEventArgs ev)
+        [PluginEvent(ServerEventType.PlayerHandcuff)]
+        public async void OnHandcuffing(Player cuffer, Player target)
         {
-            if (Instance.Config.EventsToLog.HandcuffingPlayer && ((!ev.Player.DoNotTrack && !ev.Target.DoNotTrack) || !Instance.Config.ShouldRespectDoNotTrack))
-                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.GameEvents, string.Format(Language.HasBeenHandcuffedBy, ev.Target.Nickname, Instance.Config.ShouldLogUserIds ? ev.Target.UserId : Language.Redacted, ev.Target.Role, ev.Player.Nickname, Instance.Config.ShouldLogUserIds ? ev.Player.UserId : Language.Redacted, ev.Player.Role))).ConfigureAwait(false);
+            if (Instance.Config.EventsToLog.HandcuffingPlayer && ((!cuffer.DoNotTrack && !target.DoNotTrack) || !Instance.Config.ShouldRespectDoNotTrack))
+                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.GameEvents, string.Format(Language.HasBeenHandcuffedBy, target.Nickname, Instance.Config.ShouldLogUserIds ? target.UserId : Language.Redacted, target.Role, cuffer.Nickname, Instance.Config.ShouldLogUserIds ? cuffer.UserId : Language.Redacted, cuffer.Role))).ConfigureAwait(false);
             if (Instance.Config.StaffOnlyEventsToLog.HandcuffingPlayer)
-                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.StaffCopy, string.Format(Language.HasBeenHandcuffedBy, ev.Target.Nickname, ev.Target.UserId, ev.Target.Role, ev.Player.Nickname, ev.Player.UserId, ev.Player.Role))).ConfigureAwait(false);
+                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.StaffCopy, string.Format(Language.HasBeenHandcuffedBy, target.Nickname, target.UserId, target.Role, cuffer.Nickname, cuffer.UserId, cuffer.Role))).ConfigureAwait(false);
         }
 
-        public async void OnKicked(KickedEventArgs ev)
+        [PluginEvent(ServerEventType.PlayerKicked)]
+        public async void OnKicked(Player target, Player issuer,  string reason)
         {
             if (Instance.Config.EventsToLog.PlayerBanned)
-                await Network.SendAsync(new RemoteCommand(ActionType.Log, "kicks", string.Format(Language.WasKicked, ev.Player?.Nickname ?? Language.NotAuthenticated, ev.Player?.UserId ?? Language.NotAuthenticated, ev.Reason))).ConfigureAwait(false);
+                await Network.SendAsync(new RemoteCommand(ActionType.Log, "kicks", string.Format(Language.WasKicked, target?.Nickname ?? Language.NotAuthenticated, target?.UserId ?? Language.NotAuthenticated, reason))).ConfigureAwait(false);
         }
 
-        public async void OnBanned(BannedEventArgs ev)
+        [PluginEvent(ServerEventType.PlayerBanned)]
+        public async void OnBanned(Player target, ICommandSender issuer, string reason, long duration)  
         {
             if (Instance.Config.EventsToLog.PlayerBanned)
-                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.Bans, string.Format(Language.WasBannedBy, ev.Details.OriginalName, ev.Details.Id, ev.Details.Issuer, ev.Details.Reason, new DateTime(ev.Details.Expires).ToString(Instance.Config.DateFormat)))).ConfigureAwait(false);
+                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.Bans, string.Format(Language.WasBannedBy, target.Nickname, target.UserId, issuer.LogName, reason, new DateTime(duration).ToString(Instance.Config.DateFormat)))).ConfigureAwait(false);
         }
 
+        /*
+        [PluginEvent(ServerEventType.Intercom)]
         public async void OnIntercomSpeaking(IntercomSpeakingEventArgs ev)
         {
             if (ev.Player != null && Instance.Config.EventsToLog.PlayerIntercomSpeaking && (!ev.Player.DoNotTrack || !Instance.Config.ShouldRespectDoNotTrack))
                 await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.GameEvents, string.Format(Language.HasStartedUsingTheIntercom, ev.Player.Nickname, Instance.Config.ShouldLogUserIds ? ev.Player.UserId : Language.Redacted, ev.Player.Role))).ConfigureAwait(false);
             if (ev.Player != null && Instance.Config.StaffOnlyEventsToLog.PlayerIntercomSpeaking)
                 await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.StaffCopy, string.Format(Language.HasStartedUsingTheIntercom, ev.Player.Nickname, ev.Player.UserId, ev.Player.Role))).ConfigureAwait(false);
-        }
+        }*/
 
+        /*
+        [PluginEvent(ServerEventType.PickupItem)]
         public async void OnPickingUpItem(PickingUpItemEventArgs ev)
         {
             if (Instance.Config.EventsToLog.PlayerPickingupItem && (!ev.Player.DoNotTrack || !Instance.Config.ShouldRespectDoNotTrack))
                 await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.GameEvents, string.Format(Language.HasPickedUp, ev.Player.Nickname, Instance.Config.ShouldLogUserIds ? ev.Player.UserId : Language.Redacted, ev.Player.Role, ev.Pickup.Type))).ConfigureAwait(false);
             if (Instance.Config.StaffOnlyEventsToLog.PlayerPickingupItem)
                 await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.StaffCopy, string.Format(Language.HasPickedUp, ev.Player.Nickname, ev.Player.UserId, ev.Player.Role, ev.Pickup.Type))).ConfigureAwait(false);
-        }
+        }*/
 
-        public async void OnItemDropped(DroppingItemEventArgs ev)
+        [PluginEvent(ServerEventType.PlayerDropItem)]
+        public async void OnItemDropped(Player ply, ItemBase item)
         {
-            if (Instance.Config.EventsToLog.PlayerItemDropped && (!ev.Player.DoNotTrack || !Instance.Config.ShouldRespectDoNotTrack))
-                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.GameEvents, string.Format(Language.HasDropped, ev.Player.Nickname, Instance.Config.ShouldLogUserIds ? ev.Player.UserId : Language.Redacted, ev.Player.Role, ev.Item.Type))).ConfigureAwait(false);
+            if (Instance.Config.EventsToLog.PlayerItemDropped && (!ply.DoNotTrack || !Instance.Config.ShouldRespectDoNotTrack))
+                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.GameEvents, string.Format(Language.HasDropped, ply.Nickname, Instance.Config.ShouldLogUserIds ? ply.UserId : Language.Redacted, ply.Role, item.ItemTypeId))).ConfigureAwait(false);
             if (Instance.Config.StaffOnlyEventsToLog.PlayerItemDropped)
-                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.StaffCopy, string.Format(Language.HasDropped, ev.Player.Nickname, ev.Player.UserId, ev.Player.Role, ev.Item.Type))).ConfigureAwait(false);
+                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.StaffCopy, string.Format(Language.HasDropped, ply.Nickname, ply.UserId, ply.Role, item.ItemTypeId))).ConfigureAwait(false);
         }
 
+        /*
+        [PluginEvent(ServerEventType.Gro)]
         public async void OnChangingGroup(ChangingGroupEventArgs ev)
         {
             if (ev.Player != null && Instance.Config.EventsToLog.ChangingPlayerGroup && (!ev.Player.DoNotTrack || !Instance.Config.ShouldRespectDoNotTrack))
                 await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.GameEvents, string.Format(Language.GroupSet, ev.Player.Nickname, Instance.Config.ShouldLogUserIds ? ev.Player.UserId : Language.Redacted, ev.Player.Role, ev.NewGroup?.BadgeText ?? Language.None, ev.NewGroup?.BadgeColor ?? Language.None))).ConfigureAwait(false);
             if (ev.Player != null && Instance.Config.StaffOnlyEventsToLog.ChangingPlayerGroup)
                 await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.StaffCopy, string.Format(Language.GroupSet, ev.Player.Nickname, ev.Player.UserId, ev.Player.Role, ev.NewGroup?.BadgeText ?? Language.None, ev.NewGroup?.BadgeColor ?? Language.None))).ConfigureAwait(false);
-        }
+        }*/
     }
 }
