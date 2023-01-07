@@ -3,11 +3,13 @@
 A bot and server plugin to allow server logs to be sent to Discord channels, and for server commands to be run via the Discord bot.
 
 ## Minimum requirements
-[EXILED](https://github.com/Exiled-Team/EXILED/releases/latest) **5.2.0++**
+[NWAPI](https://github.com/northwood-studios/NwPluginAPI) **12.0.0-rc.6**
+
+[NWAPIPermissionSystem](https://github.com/CedModV2/NWAPIPermissionSystem)
 
 ## Installation
-1. Extract `DiscordIntegration.dll` and its dependencies from `Plugin.tar.gz`.
-2. Place `DiscordIntegration.dll` inside the EXILED `Plugins` folder like any other plugin and its dependencies in the `Plugins/dependencies` folder.
+1. Extract `DiscordIntegration.dll` and its dependencies.
+2. Place `DiscordIntegration.dll` inside the PluginAPI `plugins` folder like any other plugin and its dependencies in the `plugins/global/dependencies` folder.
 
 ## How to create a Discord bot
 1. Go to https://discord.com/developers/applications and create a new application.
@@ -31,6 +33,7 @@ Remember to always wrap configs with quotation marks, even if it's not necessary
 
 1. Run `cd path/to/bot` replacing `path/to/bot` with the path of where the extracted bot is located.
 2. Run `./DiscordIntegration.Bot-Linux`.
+2.2 Remember to give it permissions with chmod 774 `./DiscordIntegration.Bot`
 
 ## How configure the execution of game commands through Discord
 
@@ -63,7 +66,7 @@ Remember to always wrap configs with quotation marks, even if it's not necessary
         940821568186109974
       ]
     }
-  },
+  }
 ```
 
 3. Add role IDs and list every command they can execute. You can use `.*` to permit to that role ID to use all game commands without restrictions.
