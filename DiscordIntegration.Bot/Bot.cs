@@ -118,7 +118,7 @@ public class Bot
                     if (ulong.TryParse(command.Parameters[0].ToString(), out ulong chanId))
                     {
                         string[] split = command.Parameters[1].ToString()!.Split("|");
-                        await Guild.GetTextChannel(chanId).SendMessageAsync(embed: await EmbedBuilderService.CreateBasicEmbed(ServerNumber + split[0].TrimEnd('|'), split[1].TrimStart('|'), (bool)command.Parameters[2] ? Color.Green : Color.Red));
+                        await Guild.GetTextChannel(chanId).SendMessageAsync(embed: await EmbedBuilderService.CreateBasicEmbed($"Server {ServerNumber + split[0].TrimEnd('|')} ", split[1].TrimStart('|'), (bool)command.Parameters[2] ? Color.Green : Color.Red));
                     }
 
                     break;
