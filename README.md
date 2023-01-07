@@ -1,4 +1,5 @@
 # DiscordIntegration
+![Github All Releases](https://img.shields.io/github/downloads/SrLicht/DiscordIntegration/total.svg)   <a href="https://github.com/SrLicht/DiscordIntegration/releases"><img src="https://img.shields.io/github/v/release/SrLicht/DiscordIntegration?include_prereleases&label=Last Release" alt="Releases"></a> 
 
 A bot and server plugin to allow server logs to be sent to Discord channels, and for server commands to be run via the Discord bot.
 
