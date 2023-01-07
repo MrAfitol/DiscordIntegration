@@ -32,8 +32,8 @@ Remember to always wrap configs with quotation marks, even if it's not necessary
 ### Linux
 
 1. Run `cd path/to/bot` replacing `path/to/bot` with the path of where the extracted bot is located.
-2. Run `./DiscordIntegration.Bot-Linux`.
-2.2 Remember to give it permissions with chmod 774 `./DiscordIntegration.Bot`
+2. Run `./DiscordIntegration.Bot`.
+3. Remember to give it permissions with `chmod 774 ./DiscordIntegration.Bot`
 
 ## How configure the execution of game commands through Discord
 
