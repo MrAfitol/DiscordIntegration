@@ -29,13 +29,13 @@ namespace DiscordIntegration.Events
         {
             try
             {
-                Log.Debug($"[NET] {string.Format(Language.ReceivedData, ev.Data, ev.Length)}");
+                Log.Debug($"[NET] {string.Format(Language.ReceivedData, ev.Data, ev.Length)}", Instance.Config.Debug);
                 if (ev.Data.Contains("heartbeat"))
                     return;
 
                 RemoteCommand remoteCommand = JsonConvert.DeserializeObject<RemoteCommand>(ev.Data, Network.JsonSerializerSettings);
 
-                Log.Debug($"[NET] {string.Format(Language.HandlingRemoteCommand, remoteCommand.Action, remoteCommand.Parameters[0], Network.TcpClient?.Client?.RemoteEndPoint)}");
+                Log.Debug($"[NET] {string.Format(Language.HandlingRemoteCommand, remoteCommand.Action, remoteCommand.Parameters[0], Network.TcpClient?.Client?.RemoteEndPoint)}", Instance.Config.Debug);
 
                 switch (remoteCommand.Action)
                 {
@@ -67,7 +67,7 @@ namespace DiscordIntegration.Events
         }
 
         /// <inheritdoc cref="API.Network.OnSent(object, SentEventArgs)"/>
-        public void OnSent(object _, SentEventArgs ev) => Log.Debug(string.Format(Language.SentData, ev.Data, ev.Length));
+        public void OnSent(object _, SentEventArgs ev) => Log.Debug(string.Format(Language.SentData, ev.Data, ev.Length), Instance.Config.Debug);
 
         /// <inheritdoc cref="API.Network.OnConnecting(object, ConnectingEventArgs)"/>
         public void OnConnecting(object _, ConnectingEventArgs ev)
