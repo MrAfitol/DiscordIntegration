@@ -342,7 +342,20 @@ namespace DiscordIntegration.Events
         public async void OnBanned(Player target, ICommandSender issuer, string reason, long duration)  
         {
             if (Instance.Config.EventsToLog.PlayerBanned)
-                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.Bans, string.Format(Language.WasBannedBy, target.Nickname, target.UserId, issuer.LogName, reason, new DateTime(duration).ToString(Instance.Config.DateFormat)))).ConfigureAwait(false);
+            {
+                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.Bans, string.Format(Language.WasBannedBy, target.Nickname, target.UserId, issuer.LogName, reason, DateTime.Now.AddSeconds(duration)))).ConfigureAwait(false);
+            }
+        }
+
+        [PluginEvent(ServerEventType.BanIssued)]
+        public async void OnOfflineBan(BanDetails banDetails, BanHandler.BanType banType)
+        {
+            if (Instance.Config.EventsToLog.OfflineBan)
+            {
+                var date = new DateTime(banDetails.Expires);
+                
+                await Network.SendAsync(new RemoteCommand(ActionType.Log, ChannelType.Bans, string.Format(Language.BannIssued, banDetails.Id, banDetails.Issuer, banDetails.Reason, date.ToLocalTime()))).ConfigureAwait(false);
+            }
         }
 
         /*

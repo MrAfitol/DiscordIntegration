@@ -35,7 +35,7 @@ namespace DiscordIntegration
         /// <summary>
         /// Gets the language folder.
         /// </summary>
-        public static string Folder { get; } = Path.Combine(Paths.GlobalPlugins.ToString(), "DiscordIntegration", "Languages");
+        public static string Folder { get; } = Path.Combine(Paths.Plugins, "DiscordIntegration", "Languages");
 
         /// <summary>
         /// Gets the language fullpath.
@@ -89,8 +89,10 @@ namespace DiscordIntegration
         public string HasBeenHandcuffedBy { get; set; } = ":lock: {0} ({1}) [{2}] has been handcuffed by {3} ({4}) [{5}].";
 
         public string WasKicked { get; set; } = ":no_entry: {0} ({1}) was kicked for {2}.";
+        
+        public string WasBannedBy { get; set; } = ":no_entry: {0} ({1}) was banned by {2} for ``{3}`` expire ``{4}``.";
 
-        public string WasBannedBy { get; set; } = ":no_entry: {0} ({1}) was banned by {2} for {3} expire {4}.";
+        public string BannIssued { get; set; } = ":no_entry: {0} was banned for {1} reason ``{2}``, expires ``{3}``.";
 
         public string HasStartedUsingTheIntercom { get; set; } = ":loud_sound: {0} ({1}) [{2}] has started using the intercom.";
 

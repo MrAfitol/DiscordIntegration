@@ -69,6 +69,8 @@ namespace DiscordIntegration.API.Configs
 
         public bool PlayerBanned { get; internal set; } = true;
 
+        public bool OfflineBan { get; internal set; } = true;
+
         public bool ReloadingPlayerWeapon { get; private set; }
 
         public bool ChangingPlayerRole { get; private set; } = true;

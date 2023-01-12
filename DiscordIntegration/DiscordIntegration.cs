@@ -98,6 +98,8 @@ namespace DiscordIntegration
             
             _ = Bot.UpdateActivity(Bot.UpdateActivityCancellationTokenSource.Token);
             _ = Bot.UpdateChannelsTopic(Bot.UpdateChannelsTopicCancellationTokenSource.Token);
+            
+            Log.Debug($"Path of language is {Language.FullPath}");
         }
 
         /// <summary>
