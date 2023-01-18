@@ -13,27 +13,24 @@ namespace DiscordIntegration.Commands
     using static DiscordIntegration;
 
     //[CommandHandler(typeof(RemoteAdminCommandHandler))]
-    //[CommandHandler(typeof(GameConsoleCommandHandler))]
     internal sealed class Main : ParentCommand
     {
-        public Main() => LoadGeneratedCommands();
-
         public override string Command { get; } = "discordintegration";
 
         public override string[] Aliases { get; } = new[] { "di", "integration", "discord", "ds" };
 
-        public override string Description { get; } = string.Empty;
+        public override string Description { get; } = "Main command for DiscordIntegration";
+        
+        public Main() => LoadGeneratedCommands();
 
         public override void LoadGeneratedCommands()
         {
             RegisterCommand(PlayerList.Instance);
             RegisterCommand(StaffList.Instance);
 
-            if (Instance.Config.UseWatchlist)
-            {
-                RegisterCommand(WatchlistAdd.Instance);
-                RegisterCommand(WatchlistRemove.Instance);
-            }
+            if (!Instance.Config.UseWatchlist) return;
+            RegisterCommand(WatchlistAdd.Instance);
+            RegisterCommand(WatchlistRemove.Instance);
         }
 
         protected override bool ExecuteParent(ArraySegment<string> arguments, ICommandSender sender, out string response)

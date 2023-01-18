@@ -115,6 +115,7 @@ public class Bot
                     Log.Debug(ServerNumber, nameof(OnReceived), "Failed to add message to queue.");
                     break;
                 case ActionType.SendMessage:
+                    
                     if (ulong.TryParse(command.Parameters[0].ToString(), out ulong chanId))
                     {
                         string[] split = command.Parameters[1].ToString()!.Split("|");
